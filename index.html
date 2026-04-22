@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TaskForge — Task Manager</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"/>
+</head>
+<body>
+
+<!-- Background grid -->
+<div class="bg-grid"></div>
+
+<!-- Header -->
+<header class="header">
+  <div class="header-inner">
+    <div class="logo">
+      <span class="logo-icon">⬡</span>
+      <span class="logo-text">TASKFORGE</span>
+    </div>
+    <div class="header-stats">
+      <div class="stat-pill">
+        <span class="stat-dot dot-all"></span>
+        <span>{{ total }} Total</span>
+      </div>
+      <div class="stat-pill">
+        <span class="stat-dot dot-done"></span>
+        <span>{{ completed }} Done</span>
+      </div>
+      <div class="stat-pill">
+        <span class="stat-dot dot-progress"></span>
+        <span>{{ in_progress }} Active</span>
+      </div>
+      <div class="stat-pill">
+        <span class="stat-dot dot-pending"></span>
+        <span>{{ pending }} Pending</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="main">
+
+  <!-- Progress bar -->
+  <div class="progress-section">
+    <div class="progress-label">
+      <span class="mono">COMPLETION RATE</span>
+      <span class="mono accent">{% if total > 0 %}{{ ((completed / total) * 100)|int }}%{% else %}0%{% endif %}</span>
+    </div>
+    <div class="progress-bar">
+      <div class="progress-fill" style="width: {% if total > 0 %}{{ ((completed / total) * 100)|int }}%{% else %}0%{% endif %}"></div>
+    </div>
+  </div>
+
+  <div class="layout">
+
+    <!-- Left panel: Add Task -->
+    <aside class="panel panel-add">
+      <div class="panel-header">
+        <span class="panel-title">NEW TASK</span>
+        <span class="panel-line"></span>
+      </div>
+      <form action="/add" method="POST" class="task-form">
+        <div class="field">
+          <label>TITLE</label>
+          <input type="text" name="title" placeholder="What needs to be done?" required/>
+        </div>
+        <div class="field">
+          <label>DESCRIPTION</label>
+          <textarea name="description" placeholder="Details..." rows="3"></textarea>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>PRIORITY</label>
+            <select name="priority">
+              <option value="low">🟢 Low</option>
+              <option value="medium" selected>🟡 Medium</option>
+              <option value="high">🔴 High</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>CATEGORY</label>
+            <input type="text" name="category" placeholder="e.g. Design"/>
+          </div>
+        </div>
+        <div class="field">
+          <label>DUE DATE</label>
+          <input type="date" name="due_date"/>
+        </div>
+        <button type="submit" class="btn-add">
+          <span>+ ADD TASK</span>
+        </button>
+      </form>
+    </aside>
+
+    <!-- Right panel: Task List -->
+    <section class="panel panel-list">
+      <div class="panel-header">
+        <span class="panel-title">TASKS</span>
+        <span class="panel-line"></span>
+      </div>
+
+      <!-- Filters -->
+      <div class="filters">
+        <div class="filter-group">
+          <span class="filter-label">STATUS</span>
+          <div class="filter-pills">
+            {% for s in ['all', 'pending', 'in-progress', 'completed'] %}
+            <a href="?status={{ s }}&priority={{ filter_priority }}"
+               class="fpill {% if filter_status == s %}active{% endif %}">
+              {{ s|upper }}
+            </a>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="filter-group">
+          <span class="filter-label">PRIORITY</span>
+          <div class="filter-pills">
+            {% for p in ['all', 'high', 'medium', 'low'] %}
+            <a href="?status={{ filter_status }}&priority={{ p }}"
+               class="fpill {% if filter_priority == p %}active{% endif %}">
+              {{ p|upper }}
+            </a>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Task cards -->
+      <div class="task-list">
+        {% if tasks %}
+          {% for task in tasks %}
+          <div class="task-card status-{{ task.status }} priority-{{ task.priority }}">
+            <div class="task-top">
+              <div class="task-badges">
+                <span class="badge badge-priority prio-{{ task.priority }}">{{ task.priority|upper }}</span>
+                <span class="badge badge-category">{{ task.category }}</span>
+              </div>
+              <div class="task-actions">
+                <a href="/edit/{{ task.id }}" class="action-btn edit-btn" title="Edit">✎</a>
+                <form action="/delete/{{ task.id }}" method="POST" style="display:inline"
+                      onsubmit="return confirm('Delete this task?')">
+                  <button type="submit" class="action-btn del-btn" title="Delete">✕</button>
+                </form>
+              </div>
+            </div>
+            <h3 class="task-title {% if task.status == 'completed' %}strikethrough{% endif %}">
+              {{ task.title }}
+            </h3>
+            {% if task.description %}
+            <p class="task-desc">{{ task.description }}</p>
+            {% endif %}
+            <div class="task-bottom">
+              {% if task.due_date %}
+              <span class="task-due mono">📅 {{ task.due_date }}</span>
+              {% endif %}
+              <form action="/update_status/{{ task.id }}" method="POST" class="status-form">
+                <select name="status" onchange="this.form.submit()" class="status-select status-{{ task.status }}">
+                  <option value="pending" {% if task.status=='pending' %}selected{% endif %}>⏳ Pending</option>
+                  <option value="in-progress" {% if task.status=='in-progress' %}selected{% endif %}>⚡ In Progress</option>
+                  <option value="completed" {% if task.status=='completed' %}selected{% endif %}>✅ Completed</option>
+                </select>
+              </form>
+            </div>
+          </div>
+          {% endfor %}
+        {% else %}
+          <div class="empty-state">
+            <div class="empty-icon">◈</div>
+            <p>No tasks found.<br/>Add one to get started.</p>
+          </div>
+        {% endif %}
+      </div>
+    </section>
+
+  </div>
+</main>
+
+</body>
+</html>

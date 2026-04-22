@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Edit Task — TaskForge</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"/>
+</head>
+<body>
+<div class="bg-grid"></div>
+
+<header class="header">
+  <div class="header-inner">
+    <div class="logo">
+      <span class="logo-icon">⬡</span>
+      <span class="logo-text">TASKFORGE</span>
+    </div>
+    <a href="/" class="back-btn">← BACK TO TASKS</a>
+  </div>
+</header>
+
+<main class="main edit-main">
+  <div class="edit-container">
+    <div class="panel-header" style="margin-bottom:2rem">
+      <span class="panel-title">EDIT TASK</span>
+      <span class="panel-line"></span>
+    </div>
+    <form action="/edit/{{ task.id }}" method="POST" class="task-form">
+      <div class="field">
+        <label>TITLE</label>
+        <input type="text" name="title" value="{{ task.title }}" required/>
+      </div>
+      <div class="field">
+        <label>DESCRIPTION</label>
+        <textarea name="description" rows="4">{{ task.description or '' }}</textarea>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>PRIORITY</label>
+          <select name="priority">
+            <option value="low" {% if task.priority=='low' %}selected{% endif %}>🟢 Low</option>
+            <option value="medium" {% if task.priority=='medium' %}selected{% endif %}>🟡 Medium</option>
+            <option value="high" {% if task.priority=='high' %}selected{% endif %}>🔴 High</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>STATUS</label>
+          <select name="status">
+            <option value="pending" {% if task.status=='pending' %}selected{% endif %}>⏳ Pending</option>
+            <option value="in-progress" {% if task.status=='in-progress' %}selected{% endif %}>⚡ In Progress</option>
+            <option value="completed" {% if task.status=='completed' %}selected{% endif %}>✅ Completed</option>
+          </select>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>CATEGORY</label>
+          <input type="text" name="category" value="{{ task.category or '' }}"/>
+        </div>
+        <div class="field">
+          <label>DUE DATE</label>
+          <input type="date" name="due_date" value="{{ task.due_date or '' }}"/>
+        </div>
+      </div>
+      <button type="submit" class="btn-add">💾 SAVE CHANGES</button>
+    </form>
+  </div>
+</main>
+</body>
+</html>
