@@ -14,7 +14,8 @@ A website to manage daily tasks efficiently.
 - HTML
 - CSS
 - Python
-- SQL
+- Flask
+- SQLite
 
 ## How to Use
 1. Open the website
